@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Giao Diện Hồ Sơ Cá Nhân</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Phone Container Mockup */
+        .phone-frame {
+            max-width: 410px;
+            height: 840px;
+            max-height: 92vh;
+            border-radius: 42px;
+            box-shadow: 0 0 0 10px #1e293b, 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 4px;
+        }
+
+        /* Smooth fade animations */
+        .modal-fade {
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        /* Ripple / active effect */
+        .btn-active:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-2 sm:p-4 text-slate-800">
+
+    <!-- Phone Frame Mockup Container -->
+    <div id="phone" class="phone-frame relative w-full overflow-hidden bg-slate-900 flex flex-col justify-between">
+        
+        <!-- Background Cover Image -->
+        <div id="coverArea" class="absolute inset-0 z-0">
+            <img id="coverImg" 
+                 src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1000&auto=format&fit=crop" 
+                 alt="Cover" 
+                 class="w-full h-full object-cover object-center transition-all duration-300">
+            <!-- Slight gradient overlay for contrast -->
+            <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
+        </div>
+
+        <!-- Top Header Overlay Controls -->
+        <div id="headerActions" class="relative z-10 flex justify-between items-center p-5 pt-8">
+            <!-- Direct file upload on cover button click -->
+            <button onclick="triggerFileInput('coverUpload')" class="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-md transition-all btn-active" title="Đổi ảnh bìa trực tiếp">
+                <i data-lucide="image" class="w-5 h-5"></i>
+            </button>
+            <input type="file" id="coverUpload" accept="image/*" class="hidden" onchange="handleFileUpload(event, 'cover')">
+
+            <button onclick="openModal('profileModal')" class="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-md transition-all btn-active" title="Sửa thông tin">
+                <i data-lucide="settings-2" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Floating Glass Profile Card at Bottom -->
+        <div class="relative z-10 p-4 pb-6">
+            <div id="profileCard" class="glass-card rounded-[32px] pt-0 pb-6 px-4 relative flex flex-col items-center text-center">
+                
+                <!-- Avatar Container -->
+                <div id="avatarArea" class="relative -mt-16 mb-2 cursor-pointer group">
+                    
+                    <!-- Avatar Border & Image -->
+                    <div id="avatarFrame" class="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white/80 shadow-lg bg-slate-100 flex items-center justify-center z-0" onclick="openModal('avatarModal')">
+                        <img id="avatarImg" 
+                             src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=500&auto=format&fit=crop" 
+                             alt="Avatar" 
+                             class="w-full h-full object-cover">
+                    </div>
+
+                    <!-- Direct file upload camera badge -->
+                    <button onclick="triggerFileInput('avatarUpload')" class="absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full shadow-md opacity-90 group-hover:scale-110 transition-transform z-20" title="Tải ảnh đại diện">
+                        <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <input type="file" id="avatarUpload" accept="image/*" class="hidden" onchange="handleFileUpload(event, 'avatar')">
+                </div>
+
+                <!-- Display Name -->
+                <h2 id="displayName" class="text-2xl font-bold text-slate-800 tracking-tight mt-1">Lê Bảo</h2>
+
+                <!-- Bio Text -->
+                <div id="bioContainer" class="mt-2 min-h-[24px] px-4 flex items-center justify-center group relative cursor-pointer" onclick="openModal('bioModal')">
+                    <p id="displayBio" class="text-sm font-medium text-slate-600 italic leading-snug">
+                        愛とは、傷ついていますか？
+                    </p>
+                    <span class="ml-1.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="pencil" class="w-3.5 h-3.5 inline"></i>
+                    </span>
+                </div>
+
+                <!-- Action Grid Menu (4 Buttons like design) -->
+                <div id="actions" class="grid grid-cols-4 gap-2 w-full mt-6 px-1">
+                    
+                    <!-- Button 1: Khoảnh khắc -->
+                    <button onclick="triggerAction('Khoảnh khắc')" class="flex flex-col items-center justify-center p-2 rounded-2xl hover:bg-white/40 transition-all btn-active group">
+                        <div class="w-11 h-11 rounded-2xl bg-blue-50/80 border border-blue-200/50 flex items-center justify-center text-blue-600 mb-2 shadow-sm group-hover:scale-105 transition-transform">
+                            <i data-lucide="plus-square" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-600">Khoảnh khắc</span>
+                    </button>
+
+                    <!-- Button 2: Đăng bài -->
+                    <button onclick="triggerAction('Đăng bài')" class="flex flex-col items-center justify-center p-2 rounded-2xl hover:bg-white/40 transition-all btn-active group">
+                        <div class="w-11 h-11 rounded-2xl bg-blue-50/80 border border-blue-200/50 flex items-center justify-center text-blue-600 mb-2 shadow-sm group-hover:scale-105 transition-transform">
+                            <i data-lucide="image-plus" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-600">Đăng bài</span>
+                    </button>
+
+                    <!-- Button 3: AI Studio -->
+                    <button onclick="triggerAction('AI Studio')" class="flex flex-col items-center justify-center p-2 rounded-2xl hover:bg-white/40 transition-all btn-active group">
+                        <div class="w-11 h-11 rounded-2xl bg-blue-50/80 border border-blue-200/50 flex items-center justify-center text-blue-600 mb-2 shadow-sm group-hover:scale-105 transition-transform">
+                            <i data-lucide="sparkles" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-600">AI Studio</span>
+                    </button>
+
+                    <!-- Button 4: Trang trí -->
+                    <button onclick="openModal('avatarModal')" class="flex flex-col items-center justify-center p-2 rounded-2xl hover:bg-white/40 transition-all btn-active group">
+                        <div class="w-11 h-11 rounded-2xl bg-blue-50/80 border border-blue-200/50 flex items-center justify-center text-blue-600 mb-2 shadow-sm group-hover:scale-105 transition-transform">
+                            <i data-lucide="wand-2" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-600">Trang trí</span>
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= MODALS ================= -->
+
+        <!-- 1. EDIT BIO MODAL -->
+        <div id="bioModal" class="hidden absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 modal-fade">
+            <div id="bioEditor" class="bg-white w-full rounded-3xl p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom duration-200">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-bold text-lg text-slate-800">Cập nhật tiểu sử</h3>
+                    <button onclick="closeModal('bioModal')" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Nội dung tiểu sử</label>
+                    <textarea id="bioInput" rows="3" class="w-full px-3 py-2 border rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 text-sm resize-none" placeholder="Nhập câu nói hoặc tiểu sử của bạn..."></textarea>
+                </div>
+
+                <div class="flex space-x-2 pt-2">
+                    <button onclick="deleteBio()" class="flex-1 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-1.5">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Xóa
+                    </button>
+                    <button onclick="saveBio()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm shadow-md transition-colors">
+                        Lưu lại
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. EDIT PROFILE NAME MODAL -->
+        <div id="profileModal" class="hidden absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 modal-fade">
+            <div id="profileEditor" class="bg-white w-full rounded-3xl p-5 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-bold text-lg text-slate-800">Chỉnh sửa hồ sơ</h3>
+                    <button onclick="closeModal('profileModal')" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tên hiển thị</label>
+                    <input type="text" id="nameInput" class="w-full px-3 py-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 font-medium text-sm">
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="saveProfileName()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm shadow-md transition-colors">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar picker -->
+        <div id="avatarModal" class="hidden absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 modal-fade">
+            <div id="avatarPicker" class="bg-white w-full rounded-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-bold text-lg text-slate-800">Chọn ảnh đại diện mẫu</h3>
+                    <button onclick="closeModal('avatarModal')" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Preset Avatars -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Bộ sưu tập avatar mẫu</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300" onclick="setPresetAvatar(this.src)" class="w-full h-16 object-cover rounded-xl border-2 border-transparent hover:border-blue-500 cursor-pointer">
+                        <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=300" onclick="setPresetAvatar(this.src)" class="w-full h-16 object-cover rounded-xl border-2 border-transparent hover:border-blue-500 cursor-pointer">
+                        <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=300" onclick="setPresetAvatar(this.src)" class="w-full h-16 object-cover rounded-xl border-2 border-transparent hover:border-blue-500 cursor-pointer">
+                        <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=300" onclick="setPresetAvatar(this.src)" class="w-full h-16 object-cover rounded-xl border-2 border-transparent hover:border-blue-500 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="hidden absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-xs font-medium px-4 py-2 rounded-full shadow-lg backdrop-blur-md transition-all">
+            <span id="toastMsg">Đã cập nhật!</span>
+        </div>
+
+    </div>
+
+    <!-- Firebase Storage & State Sync Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mobile-profile-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        // Initialize Cloud Persistence
+        async function initCloudPersistence() {
+            if (!firebaseConfig) return;
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        await loadSavedProfileData();
+                    }
+                });
+            } catch (err) {
+                console.error("Cloud persistence init error:", err);
+            }
+        }
+
+        // Save data to Firestore Cloud Storage
+        async function saveProfileData(dataToSave) {
+            if (!db || !currentUser) return;
+            try {
+                const profileDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'userProfile', currentUser.uid);
+                await setDoc(profileDocRef, dataToSave, { merge: true });
+            } catch (e) {
+                console.error("Error saving profile:", e);
+            }
+        }
+
+        // Load saved profile data when page opens
+        async function loadSavedProfileData() {
+            if (!db || !currentUser) return;
+            try {
+                const profileDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'userProfile', currentUser.uid);
+                const docSnap = await getDoc(profileDocRef);
+                if (docSnap.exists()) {
+                    let localData = {};
+                    try { localData = await window.loadLocalProfileData?.() || {}; }
+                    catch (error) { console.warn('Local profile storage unavailable:', error); }
+                    window.applyProfileData({ ...docSnap.data(), ...localData });
+                }
+            } catch (e) {
+                console.error("Error loading profile:", e);
+            }
+        }
+
+        window.cloudSaveProfile = saveProfileData;
+        window.initCloudPersistence = initCloudPersistence;
+
+        // Initialize persistence on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initCloudPersistence();
+        });
+    </script>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // State Elements
+        const displayName = document.getElementById('displayName');
+        const displayBio = document.getElementById('displayBio');
+        const bioInput = document.getElementById('bioInput');
+        const nameInput = document.getElementById('nameInput');
+        const avatarImg = document.getElementById('avatarImg');
+        const coverImg = document.getElementById('coverImg');
+
+        const profileDb = new Promise((resolve, reject) => {
+            const request = indexedDB.open('mobile-profile', 1);
+            request.onupgradeneeded = () => request.result.createObjectStore('profile');
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        async function loadLocalProfileData() {
+            const db = await profileDb;
+            return new Promise((resolve, reject) => {
+                const request = db.transaction('profile').objectStore('profile').get('current');
+                request.onsuccess = () => resolve(request.result || {});
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function saveLocalProfileData(changes) {
+            const db = await profileDb;
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction('profile', 'readwrite');
+                const store = transaction.objectStore('profile');
+                const request = store.get('current');
+                request.onsuccess = () => store.put({ ...request.result, ...changes }, 'current');
+                transaction.oncomplete = resolve;
+                transaction.onerror = () => reject(transaction.error);
+            });
+        }
+
+        function applyProfileData(data) {
+            if (data.avatar) avatarImg.src = data.avatar;
+            if (data.cover) coverImg.src = data.cover;
+            if (data.name) displayName.textContent = data.name;
+            if (data.bio !== undefined) {
+                const bio = data.bio.trim();
+                displayBio.textContent = bio || 'Chưa có tiểu sử';
+                displayBio.classList.toggle('text-slate-400', !bio);
+            }
+        }
+
+        window.loadLocalProfileData = loadLocalProfileData;
+        window.applyProfileData = applyProfileData;
+        window.saveLocalProfileData = saveLocalProfileData;
+        window.addEventListener('DOMContentLoaded', async () => {
+            try { applyProfileData(await loadLocalProfileData()); }
+            catch (error) { console.error('Không thể khôi phục hồ sơ cục bộ:', error); }
+        });
+
+        // Helper to trigger file dialog for specific button clicks
+        function triggerFileInput(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) input.click();
+        }
+
+        // Modal Controls
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            // Sync values to inputs on open
+            if (modalId === 'bioModal') {
+                bioInput.value = displayBio.textContent.trim() === 'Chưa có tiểu sử' ? '' : displayBio.textContent.trim();
+            } else if (modalId === 'profileModal') {
+                nameInput.value = displayName.textContent.trim();
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // Bio
+        async function updateBio(text, message) {
+            displayBio.textContent = text || 'Chưa có tiểu sử';
+            displayBio.classList.toggle('text-slate-400', !text);
+            try { await saveLocalProfileData({ bio: text }); }
+            catch (error) { console.error('Không thể lưu tiểu sử cục bộ:', error); }
+            window.cloudSaveProfile?.({ bio: text });
+            closeModal('bioModal');
+            showToast(message);
+        }
+
+        async function saveBio() {
+            await updateBio(bioInput.value.trim(), 'Đã lưu tiểu sử thành công!');
+        }
+
+        async function deleteBio() {
+            bioInput.value = '';
+            await updateBio('', 'Đã xóa tiểu sử');
+        }
+
+        // Profile name
+        async function saveProfileName() {
+            const newName = nameInput.value.trim();
+            if (newName !== '') {
+                displayName.textContent = newName;
+                try { await saveLocalProfileData({ name: newName }); }
+                catch (error) { console.error('Không thể lưu tên cục bộ:', error); }
+                window.cloudSaveProfile?.({ name: newName });
+                showToast('Đã đổi tên thành công!');
+            }
+            closeModal('profileModal');
+        }
+
+        // Image upload
+        function handleFileUpload(event, target) {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const dataUrl = reader.result;
+                const image = target === 'avatar' ? avatarImg : coverImg;
+                image.src = dataUrl;
+                try { await saveLocalProfileData({ [target]: dataUrl }); }
+                catch (error) { console.error('Không thể lưu ảnh cục bộ:', error); }
+                window.cloudSaveProfile?.({ [target]: dataUrl });
+                showToast(target === 'avatar' ? 'Đã lưu ảnh đại diện mới!' : 'Đã lưu ảnh bìa mới!');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function setPresetAvatar(url) {
+            avatarImg.src = url;
+            try { await saveLocalProfileData({ avatar: url }); }
+            catch (error) { console.error('Không thể lưu avatar cục bộ:', error); }
+            window.cloudSaveProfile?.({ avatar: url });
+            closeModal('avatarModal');
+            showToast('Đã cập nhật ảnh đại diện');
+        }
+
+        // Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2000);
+        }
+
+        // Temporary feedback for unfinished actions
+        function triggerAction(actionName) {
+            showToast(`Mở tính năng: ${actionName}`);
+        }
+    </script>
+</body>
+</html>
